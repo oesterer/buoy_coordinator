@@ -247,7 +247,7 @@ export default function App() {
           onMoveMark={handleMoveMark}
           onSetHome={handleSetHome}
         />
-        <div className="absolute left-3 top-3 z-[500] rounded-md bg-white px-3 py-2 text-sm shadow">
+        <div className="absolute right-3 top-3 z-[500] max-w-[calc(100%-5rem)] rounded-md bg-white px-3 py-2 text-sm shadow">
           {isSettingHome ? 'Click map to set home' : located ? 'Using browser location' : 'Using San Francisco fallback'}
           {!isSettingHome && <span className="ml-2 text-slate-500">Double-click map to add marks</span>}
         </div>
