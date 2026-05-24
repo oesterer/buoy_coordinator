@@ -1,4 +1,4 @@
-import { Plus, Save, Trash2 } from 'lucide-react';
+import { Home, Plus, Save, Trash2 } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import type { Buoy, Racetrack, RacetrackDraft } from '../types';
 
@@ -11,9 +11,11 @@ interface Props {
   onSelect: (id: string) => void;
   onNew: () => void;
   onSave: () => void;
-  onDelete: () => void;
+  onDelete: (id: string) => void;
   onDraftChange: (draft: RacetrackDraft) => void;
   onRemoveMark: (index: number) => void;
+  onStartSetHome: () => void;
+  isSettingHome: boolean;
 }
 
 export function RacetrackPanel({
@@ -27,7 +29,9 @@ export function RacetrackPanel({
   onSave,
   onDelete,
   onDraftChange,
-  onRemoveMark
+  onRemoveMark,
+  onStartSetHome,
+  isSettingHome
 }: Props) {
   const [isAddingTrack, setIsAddingTrack] = useState(false);
   const showEditor = Boolean(selectedId) || isAddingTrack;
@@ -63,16 +67,20 @@ export function RacetrackPanel({
         <h2 className="mb-2 text-sm font-semibold uppercase tracking-wide text-slate-500">Saved Racetracks</h2>
         <div className="space-y-2">
           {racetracks.map((track) => (
-            <button
+            <div
               key={track.id}
-              className={`w-full rounded-md border p-3 text-left transition ${
+              className={`flex items-center gap-2 rounded-md border p-2 transition ${
                 selectedId === track.id ? 'border-harbor bg-teal-50' : 'border-slate-200 hover:border-slate-300'
               }`}
-              onClick={() => onSelect(track.id)}
             >
-              <div className="font-medium text-slate-950">{track.name}</div>
-              <div className="text-sm text-slate-500">{track.marks.length} marks</div>
-            </button>
+              <button className="min-w-0 flex-1 text-left" onClick={() => onSelect(track.id)}>
+                <div className="truncate font-medium text-slate-950">{track.name}</div>
+                <div className="text-sm text-slate-500">{track.marks.length} marks</div>
+              </button>
+              <button className="danger-button h-9 w-9" onClick={() => onDelete(track.id)} title={`Delete ${track.name}`}>
+                <Trash2 size={16} />
+              </button>
+            </div>
           ))}
         </div>
 
@@ -94,7 +102,11 @@ export function RacetrackPanel({
                   />
                 </label>
                 <div className="grid grid-cols-2 gap-2">
-                  <button className="primary-button" onClick={onSave} disabled={saving || draft.marks.length === 0}>
+                  <button
+                    className="primary-button"
+                    onClick={onSave}
+                    disabled={saving || draft.marks.length === 0 || draft.homeLatitude === null || draft.homeLongitude === null}
+                  >
                     <Save size={16} />
                     {saving ? 'Saving' : 'Save'}
                   </button>
@@ -112,43 +124,34 @@ export function RacetrackPanel({
           )}
         </div>
 
-        {showEditor && !isAddingTrack && (
-          <div className="mt-5 space-y-3 border-t border-slate-200 pt-4">
-            <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Racetrack Details</h2>
-            <label className="field">
-              <span>Name</span>
-              <input value={draft.name} onChange={(event) => onDraftChange({ ...draft, name: event.target.value })} />
-            </label>
-            <label className="field">
-              <span>Description</span>
-              <textarea
-                rows={2}
-                value={draft.description}
-                onChange={(event) => onDraftChange({ ...draft, description: event.target.value })}
-              />
-            </label>
-            <div className="flex gap-2">
-              <button className="primary-button flex-1" onClick={onSave} disabled={saving || draft.marks.length === 0}>
-                <Save size={16} />
-                {saving ? 'Saving' : 'Save'}
-              </button>
-              <button className="danger-button" onClick={onDelete} disabled={!selectedId} title="Delete selected racetrack">
-                <Trash2 size={16} />
-              </button>
-            </div>
-          </div>
-        )}
-
         {showEditor && (
           <>
-            <h2 className="mb-2 mt-5 text-sm font-semibold uppercase tracking-wide text-slate-500">Marks</h2>
+            <div className="mt-5 flex items-center justify-between gap-2 border-t border-slate-200 pt-4">
+              <div>
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-slate-500">Marks</h2>
+                <div className="text-xs text-slate-500">{saving && !isAddingTrack ? 'Autosaving changes' : 'Changes update the selected racetrack'}</div>
+              </div>
+              <button
+                className={`icon-button h-9 w-9 ${isSettingHome ? 'border-harbor bg-teal-50 text-harbor' : ''}`}
+                onClick={onStartSetHome}
+                title="Set home location"
+              >
+                <Home size={16} />
+              </button>
+            </div>
+            <div className="mb-3 mt-2 rounded-md border border-slate-200 bg-slate-50 px-3 py-2 text-sm text-slate-600">
+              Home:{' '}
+              {draft.homeLatitude !== null && draft.homeLongitude !== null
+                ? `${draft.homeLatitude.toFixed(5)}, ${draft.homeLongitude.toFixed(5)}`
+                : 'not set'}
+            </div>
             <div className="space-y-2">
               {draft.marks.map((mark, index) => (
                 <div key={`${mark.id ?? 'draft'}-${index}`} className="rounded-md border border-slate-200 p-3">
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <span className="font-medium text-slate-950">Mark {index + 1}</span>
-                    <button className="text-sm text-red-600" onClick={() => onRemoveMark(index)}>
-                      Remove
+                    <button className="danger-button h-8 w-8" onClick={() => onRemoveMark(index)} title={`Delete mark ${index + 1}`}>
+                      <Trash2 size={15} />
                     </button>
                   </div>
                   <div className="grid grid-cols-2 gap-2">

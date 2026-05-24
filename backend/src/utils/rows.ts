@@ -35,6 +35,8 @@ export function mapRacetrack(row: Record<string, unknown>, marks: RacetrackMark[
     id: String(row.id),
     name: String(row.name),
     description: String(row.description ?? ''),
+    homeLatitude: row.home_latitude == null ? null : Number(row.home_latitude),
+    homeLongitude: row.home_longitude == null ? null : Number(row.home_longitude),
     marks,
     createdAt: new Date(row.created_at as string).toISOString(),
     updatedAt: new Date(row.updated_at as string).toISOString()

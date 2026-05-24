@@ -5,6 +5,8 @@ import type { RacetrackMark } from '../types.js';
 interface RacetrackInput {
   name: string;
   description: string;
+  homeLatitude?: number | null;
+  homeLongitude?: number | null;
   marks: Array<{
     latitude: number;
     longitude: number;
@@ -41,8 +43,8 @@ export async function createRacetrack(input: RacetrackInput) {
   try {
     await client.query('BEGIN');
     const trackResult = await client.query(
-      'INSERT INTO racetracks (name, description) VALUES ($1, $2) RETURNING *',
-      [input.name, input.description]
+      'INSERT INTO racetracks (name, description, home_latitude, home_longitude) VALUES ($1, $2, $3, $4) RETURNING *',
+      [input.name, input.description, input.homeLatitude ?? null, input.homeLongitude ?? null]
     );
     const track = trackResult.rows[0];
 
@@ -71,10 +73,14 @@ export async function updateRacetrack(id: string, input: RacetrackInput) {
     await client.query('BEGIN');
     const trackResult = await client.query(
       `UPDATE racetracks
-       SET name = $2, description = $3, updated_at = now()
+       SET name = $2,
+           description = $3,
+           home_latitude = $4,
+           home_longitude = $5,
+           updated_at = now()
        WHERE id = $1
        RETURNING *`,
-      [id, input.name, input.description]
+      [id, input.name, input.description, input.homeLatitude ?? null, input.homeLongitude ?? null]
     );
     const track = trackResult.rows[0];
     if (!track) {

@@ -14,27 +14,47 @@ const buoyIcon = new L.Icon({
   shadowSize: [41, 41]
 });
 
+const homeDragIcon = L.divIcon({
+  className: 'home-drag-icon',
+  html: '<div class="home-drag-icon__inner">⌂</div>',
+  iconSize: [30, 30],
+  iconAnchor: [15, 15]
+});
+
 interface Props {
   center: [number, number];
   buoys: Buoy[];
   draft: RacetrackDraft;
   selectedTrack: Racetrack | null;
+  isSettingHome: boolean;
   onAddMark: (latitude: number, longitude: number) => void;
   onMoveMark: (index: number, latitude: number, longitude: number) => void;
+  onSetHome: (latitude: number, longitude: number) => void;
 }
 
-function AddMarkHandler({ onAddMark }: Pick<Props, 'onAddMark'>) {
+function MapClickHandler({ isSettingHome, onAddMark, onSetHome }: Pick<Props, 'isSettingHome' | 'onAddMark' | 'onSetHome'>) {
   useMapEvents({
+    click(event) {
+      if (isSettingHome) {
+        onSetHome(event.latlng.lat, event.latlng.lng);
+      }
+    },
     dblclick(event) {
-      onAddMark(event.latlng.lat, event.latlng.lng);
+      if (!isSettingHome) {
+        onAddMark(event.latlng.lat, event.latlng.lng);
+      }
     }
   });
   return null;
 }
 
-export function RacetrackMap({ center, buoys, draft, selectedTrack, onAddMark, onMoveMark }: Props) {
+export function RacetrackMap({ center, buoys, draft, selectedTrack, isSettingHome, onAddMark, onMoveMark, onSetHome }: Props) {
   const trackLine = draft.marks.map((mark) => [mark.latitude, mark.longitude] as [number, number]);
   const closedLine = trackLine.length > 2 ? [...trackLine, trackLine[0]] : trackLine;
+  const homePosition =
+    draft.homeLatitude !== null && draft.homeLongitude !== null
+      ? ([draft.homeLatitude, draft.homeLongitude] as [number, number])
+      : null;
 
   return (
     <MapContainer center={center} zoom={13} className="h-full min-h-[420px] w-full" doubleClickZoom={false}>
@@ -43,9 +63,43 @@ export function RacetrackMap({ center, buoys, draft, selectedTrack, onAddMark, o
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
       <MapController center={center} selectedTrack={selectedTrack} />
-      <AddMarkHandler onAddMark={onAddMark} />
+      <MapClickHandler isSettingHome={isSettingHome} onAddMark={onAddMark} onSetHome={onSetHome} />
 
       {closedLine.length > 1 && <Polyline positions={closedLine} pathOptions={{ color: '#0f766e', weight: 3 }} />}
+
+      {homePosition && (
+        <CircleMarker
+          center={homePosition}
+          radius={13}
+          pathOptions={{ color: '#111827', fillColor: '#ffffff', fillOpacity: 1, weight: 3 }}
+        >
+          <Tooltip permanent direction="right">
+            HOME
+          </Tooltip>
+          <Popup>
+            <div className="space-y-1">
+              <strong>Home</strong>
+              <div>Lat {homePosition[0].toFixed(5)}</div>
+              <div>Lng {homePosition[1].toFixed(5)}</div>
+            </div>
+          </Popup>
+        </CircleMarker>
+      )}
+
+      {homePosition && (
+        <Marker
+          position={homePosition}
+          draggable
+          icon={homeDragIcon}
+          eventHandlers={{
+            dragend(event) {
+              const marker = event.target as L.Marker;
+              const position = marker.getLatLng();
+              onSetHome(position.lat, position.lng);
+            }
+          }}
+        />
+      )}
 
       {draft.marks.map((mark, index) => (
         <Marker

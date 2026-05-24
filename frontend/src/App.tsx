@@ -10,6 +10,8 @@ import type { Buoy, BuoyCommand, Racetrack, RacetrackDraft } from './types';
 const emptyDraft: RacetrackDraft = {
   name: 'New Racetrack',
   description: '',
+  homeLatitude: null,
+  homeLongitude: null,
   marks: []
 };
 
@@ -18,8 +20,26 @@ function normalizeDraft(track: Racetrack): RacetrackDraft {
     id: track.id,
     name: track.name,
     description: track.description,
+    homeLatitude: track.homeLatitude,
+    homeLongitude: track.homeLongitude,
     marks: track.marks.map((mark, index) => ({ ...mark, orderIndex: index }))
   };
+}
+
+function serializeDraft(draft: RacetrackDraft) {
+  return JSON.stringify({
+    name: draft.name,
+    description: draft.description,
+    homeLatitude: draft.homeLatitude,
+    homeLongitude: draft.homeLongitude,
+    marks: draft.marks.map((mark, orderIndex) => ({
+      latitude: mark.latitude,
+      longitude: mark.longitude,
+      markType: mark.markType,
+      orderIndex,
+      assignedBuoyId: mark.assignedBuoyId ?? null
+    }))
+  });
 }
 
 export default function App() {
@@ -30,6 +50,7 @@ export default function App() {
   const [draft, setDraft] = useState<RacetrackDraft>(emptyDraft);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isSettingHome, setIsSettingHome] = useState(false);
 
   const selectedTrack = useMemo(() => racetracks.find((track) => track.id === selectedId) ?? null, [racetracks, selectedId]);
 
@@ -66,6 +87,27 @@ export default function App() {
 
   useRealtime(handleRealtime);
 
+  useEffect(() => {
+    if (!selectedId || !selectedTrack || draft.marks.length === 0) return;
+    if (serializeDraft(draft) === serializeDraft(normalizeDraft(selectedTrack))) return;
+
+    const timeout = window.setTimeout(() => {
+      setSaving(true);
+      updateRacetrack(selectedId, {
+        ...draft,
+        marks: draft.marks.map((mark, orderIndex) => ({ ...mark, orderIndex }))
+      })
+        .then((saved) => {
+          setRacetracks((current) => [saved, ...current.filter((track) => track.id !== saved.id)]);
+          setDraft(normalizeDraft(saved));
+        })
+        .catch(() => setError('Unable to update racetrack.'))
+        .finally(() => setSaving(false));
+    }, 500);
+
+    return () => window.clearTimeout(timeout);
+  }, [draft, selectedId, selectedTrack]);
+
   function handleSelect(id: string) {
     const track = racetracks.find((item) => item.id === id);
     if (!track) return;
@@ -76,6 +118,7 @@ export default function App() {
   function handleNew() {
     setSelectedId(null);
     setDraft({ ...emptyDraft, marks: [] });
+    setIsSettingHome(false);
   }
 
   function handleAddMark(latitude: number, longitude: number) {
@@ -92,6 +135,11 @@ export default function App() {
         }
       ]
     }));
+  }
+
+  function handleSetHome(latitude: number, longitude: number) {
+    setDraft((current) => ({ ...current, homeLatitude: latitude, homeLongitude: longitude }));
+    setIsSettingHome(false);
   }
 
   function handleMoveMark(index: number, latitude: number, longitude: number) {
@@ -129,12 +177,13 @@ export default function App() {
     }
   }
 
-  async function handleDelete() {
-    if (!selectedId) return;
+  async function handleDelete(id: string) {
     try {
-      await deleteRacetrack(selectedId);
-      setRacetracks((current) => current.filter((track) => track.id !== selectedId));
-      handleNew();
+      await deleteRacetrack(id);
+      setRacetracks((current) => current.filter((track) => track.id !== id));
+      if (selectedId === id) {
+        handleNew();
+      }
     } catch {
       setError('Unable to delete racetrack.');
     }
@@ -146,6 +195,17 @@ export default function App() {
       setBuoys((current) => current.map((item) => (item.id === id ? buoy : item)));
     } catch {
       setError('Unable to send buoy command.');
+    }
+  }
+
+  async function handleCommandAll(command: BuoyCommand, target?: { latitude: number; longitude: number }) {
+    try {
+      const updatedBuoys = await Promise.all(buoys.map((buoy) => sendBuoyCommand(buoy.id, command, target)));
+      setBuoys((current) =>
+        current.map((buoy) => updatedBuoys.find((updatedBuoy) => updatedBuoy.id === buoy.id) ?? buoy)
+      );
+    } catch {
+      setError('Unable to send command to all buoys.');
     }
   }
 
@@ -172,6 +232,8 @@ export default function App() {
         onDelete={handleDelete}
         onDraftChange={setDraft}
         onRemoveMark={handleRemoveMark}
+        onStartSetHome={() => setIsSettingHome(true)}
+        isSettingHome={isSettingHome}
       />
 
       <main className="relative min-h-[55vh]">
@@ -180,17 +242,19 @@ export default function App() {
           buoys={buoys}
           draft={draft}
           selectedTrack={selectedTrack}
+          isSettingHome={isSettingHome}
           onAddMark={handleAddMark}
           onMoveMark={handleMoveMark}
+          onSetHome={handleSetHome}
         />
         <div className="absolute left-3 top-3 z-[500] rounded-md bg-white px-3 py-2 text-sm shadow">
-          {located ? 'Using browser location' : 'Using San Francisco fallback'}
-          <span className="ml-2 text-slate-500">Double-click map to add marks</span>
+          {isSettingHome ? 'Click map to set home' : located ? 'Using browser location' : 'Using San Francisco fallback'}
+          {!isSettingHome && <span className="ml-2 text-slate-500">Double-click map to add marks</span>}
         </div>
         {error && <div className="absolute bottom-3 left-3 z-[500] rounded-md bg-red-600 px-3 py-2 text-sm text-white shadow">{error}</div>}
       </main>
 
-      <BuoyPanel buoys={buoys} draft={draft} onCommand={handleCommand} onAddBuoy={handleAddBuoy} />
+      <BuoyPanel buoys={buoys} draft={draft} onCommand={handleCommand} onCommandAll={handleCommandAll} onAddBuoy={handleAddBuoy} />
     </div>
   );
 }

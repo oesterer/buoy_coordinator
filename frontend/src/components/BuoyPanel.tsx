@@ -16,18 +16,23 @@ interface Props {
   buoys: Buoy[];
   draft: RacetrackDraft;
   onCommand: (id: string, command: BuoyCommand, target?: { latitude: number; longitude: number }) => void;
+  onCommandAll: (command: BuoyCommand, target?: { latitude: number; longitude: number }) => void;
   onAddBuoy: (input: { name: string; latitude?: number | null; longitude?: number | null }) => void;
 }
 
-const commandButtons: Array<{ command: BuoyCommand; title: string; icon: typeof LocateFixed; needsTarget?: boolean }> = [
-  { command: 'MOVE_TO', title: 'Move to first mark', icon: LocateFixed, needsTarget: true },
-  { command: 'HOLD_POSITION', title: 'Hold position', icon: Pause },
-  { command: 'RETURN_HOME', title: 'Return home', icon: RotateCcw },
-  { command: 'STOP', title: 'Stop', icon: Octagon }
+const commandButtons: Array<{ command: BuoyCommand; title: string; icon: typeof LocateFixed; target: 'firstMark' | 'home' | 'none' }> = [
+  { command: 'MOVE_TO', title: 'Move to first mark', icon: LocateFixed, target: 'firstMark' },
+  { command: 'HOLD_POSITION', title: 'Hold position', icon: Pause, target: 'none' },
+  { command: 'RETURN_HOME', title: 'Return home', icon: RotateCcw, target: 'home' },
+  { command: 'STOP', title: 'Stop', icon: Octagon, target: 'none' }
 ];
 
-export function BuoyPanel({ buoys, draft, onCommand, onAddBuoy }: Props) {
+export function BuoyPanel({ buoys, draft, onCommand, onCommandAll, onAddBuoy }: Props) {
   const firstMark = draft.marks[0];
+  const home =
+    draft.homeLatitude !== null && draft.homeLongitude !== null
+      ? { latitude: draft.homeLatitude, longitude: draft.homeLongitude }
+      : null;
   const [isAddingBuoy, setIsAddingBuoy] = useState(false);
   const [newBuoyName, setNewBuoyName] = useState('');
   const [newBuoyLatitude, setNewBuoyLatitude] = useState('');
@@ -48,11 +53,37 @@ export function BuoyPanel({ buoys, draft, onCommand, onAddBuoy }: Props) {
     setIsAddingBuoy(false);
   }
 
+  function getTarget(target: 'firstMark' | 'home' | 'none') {
+    if (target === 'firstMark') return firstMark;
+    if (target === 'home') return home ?? undefined;
+    return undefined;
+  }
+
   return (
     <section className="border-t border-slate-200 bg-white p-3 lg:border-l lg:border-t-0">
       <div className="mb-3 flex items-center gap-2">
         <Anchor size={18} className="text-harbor" />
         <h2 className="font-semibold text-slate-950">Live Buoys</h2>
+      </div>
+      <div className="mb-3 rounded-md border border-slate-200 p-3">
+        <div className="mb-2 text-sm font-semibold text-slate-950">All Buoys</div>
+        <div className="grid grid-cols-4 gap-2">
+          {commandButtons.map(({ command, title, icon: Icon, target }) => {
+            const commandTarget = getTarget(target);
+            const disabled = (target === 'firstMark' && !commandTarget) || (target === 'home' && !commandTarget) || buoys.length === 0;
+            return (
+              <button
+                key={command}
+                className="icon-button"
+                title={`${title} for all buoys`}
+                disabled={disabled}
+                onClick={() => onCommandAll(command, commandTarget)}
+              >
+                <Icon size={16} />
+              </button>
+            );
+          })}
+        </div>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
         {buoys.map((buoy, index) => {
@@ -91,21 +122,17 @@ export function BuoyPanel({ buoys, draft, onCommand, onAddBuoy }: Props) {
               </div>
 
               <div className="grid grid-cols-4 gap-2">
-                {commandButtons.map(({ command, title, icon: Icon, needsTarget }) => {
+                {commandButtons.map(({ command, title, icon: Icon, target }) => {
                   const active = buoy.pendingCommand === command;
+                  const commandTarget = getTarget(target);
+                  const disabled = (target === 'firstMark' && !commandTarget) || (target === 'home' && !commandTarget);
                   return (
                     <button
                       key={command}
                       className={`icon-button ${active ? 'border-harbor bg-teal-50 text-harbor ring-2 ring-teal-100' : ''}`}
                       title={active ? `${title} is active` : title}
-                      disabled={needsTarget && !firstMark}
-                      onClick={() => {
-                        if (needsTarget) {
-                          if (firstMark) onCommand(buoy.id, command, firstMark);
-                          return;
-                        }
-                        onCommand(buoy.id, command);
-                      }}
+                      disabled={disabled}
+                      onClick={() => onCommand(buoy.id, command, commandTarget)}
                     >
                       <Icon size={16} />
                     </button>

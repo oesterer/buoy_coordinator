@@ -29,6 +29,8 @@ export interface Racetrack {
   id: string;
   name: string;
   description: string;
+  homeLatitude: number | null;
+  homeLongitude: number | null;
   marks: RacetrackMark[];
   createdAt: string;
   updatedAt: string;
@@ -38,5 +40,7 @@ export interface RacetrackDraft {
   id?: string;
   name: string;
   description: string;
+  homeLatitude: number | null;
+  homeLongitude: number | null;
   marks: RacetrackMark[];
 }

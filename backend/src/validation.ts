@@ -32,6 +32,8 @@ export const racetrackMarkSchema = z.object({
 export const racetrackInputSchema = z.object({
   name: z.string().min(1).max(120),
   description: z.string().max(500).optional().default(''),
+  homeLatitude: z.number().min(-90).max(90).nullable().optional(),
+  homeLongitude: z.number().min(-180).max(180).nullable().optional(),
   marks: z.array(racetrackMarkSchema).min(1)
 });
 

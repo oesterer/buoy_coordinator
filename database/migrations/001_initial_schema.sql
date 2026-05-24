@@ -35,6 +35,8 @@ CREATE TABLE IF NOT EXISTS racetracks (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   name text NOT NULL,
   description text NOT NULL DEFAULT '',
+  home_latitude double precision,
+  home_longitude double precision,
   created_at timestamptz NOT NULL DEFAULT now(),
   updated_at timestamptz NOT NULL DEFAULT now()
 );
@@ -63,8 +65,8 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 WITH track AS (
-  INSERT INTO racetracks (name, description)
-  VALUES ('Golden Gate Practice Triangle', 'Short windward-leeward practice course near Crissy Field.')
+  INSERT INTO racetracks (name, description, home_latitude, home_longitude)
+  VALUES ('Golden Gate Practice Triangle', 'Short windward-leeward practice course near Crissy Field.', 37.8072, -122.4770)
   RETURNING id
 )
 INSERT INTO racetrack_marks (racetrack_id, latitude, longitude, mark_type, order_index)
