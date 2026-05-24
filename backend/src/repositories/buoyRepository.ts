@@ -7,6 +7,29 @@ export async function listBuoys() {
   return result.rows.map(mapBuoy);
 }
 
+export async function createBuoy(input: {
+  name: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  homeLatitude?: number | null;
+  homeLongitude?: number | null;
+}) {
+  const result = await pool.query(
+    `INSERT INTO buoys (name, latitude, longitude, home_latitude, home_longitude, status)
+     VALUES ($1, $2, $3, $4, $5, 'offline')
+     RETURNING *`,
+    [
+      input.name,
+      input.latitude ?? null,
+      input.longitude ?? null,
+      input.homeLatitude ?? input.latitude ?? null,
+      input.homeLongitude ?? input.longitude ?? null
+    ]
+  );
+
+  return mapBuoy(result.rows[0]);
+}
+
 export async function updateTelemetry(id: string, telemetry: {
   latitude: number;
   longitude: number;
@@ -24,7 +47,8 @@ export async function updateTelemetry(id: string, telemetry: {
          status = $6,
          telemetry_timestamp = COALESCE($7::timestamptz, now()),
          updated_at = now()
-     WHERE id = $1
+     WHERE id::text = $1
+        OR lower(name) = lower($1)
      RETURNING *`,
     [id, telemetry.latitude, telemetry.longitude, telemetry.heading, telemetry.batteryLevel, telemetry.status, telemetry.timestamp ?? null]
   );
@@ -36,7 +60,8 @@ export async function getCommand(id: string) {
   const result = await pool.query(
     `SELECT pending_command, command_target_latitude, command_target_longitude, command_updated_at
      FROM buoys
-     WHERE id = $1`,
+     WHERE id::text = $1
+        OR lower(name) = lower($1)`,
     [id]
   );
   const row = result.rows[0];
@@ -58,7 +83,8 @@ export async function setCommand(id: string, command: BuoyCommand, targetLatitud
          command_target_longitude = $4,
          command_updated_at = now(),
          updated_at = now()
-     WHERE id = $1
+     WHERE id::text = $1
+        OR lower(name) = lower($1)
      RETURNING *`,
     [id, command, targetLatitude ?? null, targetLongitude ?? null]
   );

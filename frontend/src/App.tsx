@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { createRacetrack, deleteRacetrack, getBuoys, getRacetracks, sendBuoyCommand, updateRacetrack } from './api';
+import { createBuoy, createRacetrack, deleteRacetrack, getBuoys, getRacetracks, sendBuoyCommand, updateRacetrack } from './api';
 import { BuoyPanel } from './components/BuoyPanel';
 import { RacetrackMap } from './components/RacetrackMap';
 import { RacetrackPanel } from './components/RacetrackPanel';
@@ -47,6 +47,9 @@ export default function App() {
   }, []);
 
   const handleRealtime = useCallback((message: Parameters<typeof useRealtime>[0] extends (message: infer T) => void ? T : never) => {
+    if (message.type === 'buoy.created') {
+      setBuoys((current) => [...current.filter((buoy) => buoy.id !== message.buoy.id), message.buoy].sort((a, b) => a.name.localeCompare(b.name)));
+    }
     if (message.type === 'buoy.updated') {
       setBuoys((current) => current.map((buoy) => (buoy.id === message.buoy.id ? message.buoy : buoy)));
     }
@@ -146,6 +149,15 @@ export default function App() {
     }
   }
 
+  async function handleAddBuoy(input: { name: string; latitude?: number | null; longitude?: number | null }) {
+    try {
+      const buoy = await createBuoy(input);
+      setBuoys((current) => [...current.filter((item) => item.id !== buoy.id), buoy].sort((a, b) => a.name.localeCompare(b.name)));
+    } catch {
+      setError('Unable to add buoy.');
+    }
+  }
+
   return (
     <div className="grid min-h-screen bg-slate-100 text-slate-900 lg:grid-cols-[360px_1fr_360px]">
       <RacetrackPanel
@@ -178,7 +190,7 @@ export default function App() {
         {error && <div className="absolute bottom-3 left-3 z-[500] rounded-md bg-red-600 px-3 py-2 text-sm text-white shadow">{error}</div>}
       </main>
 
-      <BuoyPanel buoys={buoys} draft={draft} onCommand={handleCommand} />
+      <BuoyPanel buoys={buoys} draft={draft} onCommand={handleCommand} onAddBuoy={handleAddBuoy} />
     </div>
   );
 }

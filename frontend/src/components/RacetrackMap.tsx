@@ -1,6 +1,7 @@
 import L from 'leaflet';
 import { CircleMarker, MapContainer, Marker, Polyline, Popup, TileLayer, Tooltip, useMapEvents } from 'react-leaflet';
 import type { Buoy, Racetrack, RacetrackDraft } from '../types';
+import { getBuoyColor } from '../lib/buoyColors';
 import { MapController } from './MapController';
 
 const buoyIcon = new L.Icon({
@@ -74,23 +75,26 @@ export function RacetrackMap({ center, buoys, draft, selectedTrack, onAddMark, o
 
       {buoys
         .filter((buoy) => buoy.latitude !== null && buoy.longitude !== null)
-        .map((buoy) => (
-          <CircleMarker
-            key={buoy.id}
-            center={[buoy.latitude!, buoy.longitude!]}
-            radius={10}
-            pathOptions={{ color: '#f59e0b', fillColor: '#f59e0b', fillOpacity: 0.85 }}
-          >
-            <Popup>
-              <div className="space-y-1">
-                <strong>{buoy.name}</strong>
-                <div>Status {buoy.status}</div>
-                <div>Battery {buoy.batteryLevel ?? '-'}%</div>
-                <div>Heading {buoy.heading ?? '-'} deg</div>
-              </div>
-            </Popup>
-          </CircleMarker>
-        ))}
+        .map((buoy, index) => {
+          const color = getBuoyColor(index);
+          return (
+            <CircleMarker
+              key={buoy.id}
+              center={[buoy.latitude!, buoy.longitude!]}
+              radius={10}
+              pathOptions={{ color, fillColor: color, fillOpacity: 0.85 }}
+            >
+              <Popup>
+                <div className="space-y-1">
+                  <strong>{buoy.name}</strong>
+                  <div>Status {buoy.status}</div>
+                  <div>Battery {buoy.batteryLevel ?? '-'}%</div>
+                  <div>Heading {buoy.heading ?? '-'} deg</div>
+                </div>
+              </Popup>
+            </CircleMarker>
+          );
+        })}
 
       {buoys
         .filter((buoy) => buoy.commandTargetLatitude !== null && buoy.commandTargetLongitude !== null)

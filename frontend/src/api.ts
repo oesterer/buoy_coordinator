@@ -48,6 +48,19 @@ export function getBuoys() {
   return request<Buoy[]>('/api/buoys');
 }
 
+export function createBuoy(input: {
+  name: string;
+  latitude?: number | null;
+  longitude?: number | null;
+  homeLatitude?: number | null;
+  homeLongitude?: number | null;
+}) {
+  return request<Buoy>('/api/buoys', {
+    method: 'POST',
+    body: JSON.stringify(input)
+  });
+}
+
 export function sendBuoyCommand(id: string, command: BuoyCommand, target?: { latitude: number; longitude: number }) {
   return request<Buoy>(`/api/buoys/${id}/commands`, {
     method: 'POST',

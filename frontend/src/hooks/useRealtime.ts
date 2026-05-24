@@ -3,6 +3,7 @@ import type { Buoy, Racetrack } from '../types';
 
 type RealtimeMessage =
   | { type: 'connected' }
+  | { type: 'buoy.created'; buoy: Buoy }
   | { type: 'buoy.updated'; buoy: Buoy }
   | { type: 'racetrack.created'; racetrack: Racetrack }
   | { type: 'racetrack.updated'; racetrack: Racetrack }

@@ -2,6 +2,7 @@ import type { Server } from 'node:http';
 import { WebSocketServer, WebSocket } from 'ws';
 
 export type RealtimeMessage =
+  | { type: 'buoy.created'; buoy: unknown }
   | { type: 'buoy.updated'; buoy: unknown }
   | { type: 'racetrack.created'; racetrack: unknown }
   | { type: 'racetrack.updated'; racetrack: unknown }

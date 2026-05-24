@@ -1,4 +1,6 @@
-import { Anchor, Battery, LocateFixed, Octagon, Pause, Play, RotateCcw } from 'lucide-react';
+import { Anchor, Battery, LocateFixed, Octagon, Pause, Plus, RotateCcw } from 'lucide-react';
+import { useState } from 'react';
+import { getBuoyColor } from '../lib/buoyColors';
 import type { Buoy, BuoyCommand, RacetrackDraft } from '../types';
 
 const statusClass: Record<Buoy['status'], string> = {
@@ -14,10 +16,37 @@ interface Props {
   buoys: Buoy[];
   draft: RacetrackDraft;
   onCommand: (id: string, command: BuoyCommand, target?: { latitude: number; longitude: number }) => void;
+  onAddBuoy: (input: { name: string; latitude?: number | null; longitude?: number | null }) => void;
 }
 
-export function BuoyPanel({ buoys, draft, onCommand }: Props) {
+const commandButtons: Array<{ command: BuoyCommand; title: string; icon: typeof LocateFixed; needsTarget?: boolean }> = [
+  { command: 'MOVE_TO', title: 'Move to first mark', icon: LocateFixed, needsTarget: true },
+  { command: 'HOLD_POSITION', title: 'Hold position', icon: Pause },
+  { command: 'RETURN_HOME', title: 'Return home', icon: RotateCcw },
+  { command: 'STOP', title: 'Stop', icon: Octagon }
+];
+
+export function BuoyPanel({ buoys, draft, onCommand, onAddBuoy }: Props) {
   const firstMark = draft.marks[0];
+  const [isAddingBuoy, setIsAddingBuoy] = useState(false);
+  const [newBuoyName, setNewBuoyName] = useState('');
+  const [newBuoyLatitude, setNewBuoyLatitude] = useState('');
+  const [newBuoyLongitude, setNewBuoyLongitude] = useState('');
+
+  function handleAddBuoy() {
+    const name = newBuoyName.trim();
+    if (!name) return;
+
+    onAddBuoy({
+      name,
+      latitude: newBuoyLatitude ? Number(newBuoyLatitude) : null,
+      longitude: newBuoyLongitude ? Number(newBuoyLongitude) : null
+    });
+    setNewBuoyName('');
+    setNewBuoyLatitude('');
+    setNewBuoyLongitude('');
+    setIsAddingBuoy(false);
+  }
 
   return (
     <section className="border-t border-slate-200 bg-white p-3 lg:border-l lg:border-t-0">
@@ -26,61 +55,116 @@ export function BuoyPanel({ buoys, draft, onCommand }: Props) {
         <h2 className="font-semibold text-slate-950">Live Buoys</h2>
       </div>
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-1">
-        {buoys.map((buoy) => (
-          <article key={buoy.id} className="rounded-md border border-slate-200 p-3">
-            <div className="mb-3 flex items-start justify-between gap-2">
-              <div>
-                <h3 className="font-medium text-slate-950">{buoy.name}</h3>
-                <div className="text-xs text-slate-500">
-                  {buoy.telemetryTimestamp ? new Date(buoy.telemetryTimestamp).toLocaleTimeString() : 'No telemetry'}
+        {buoys.map((buoy, index) => {
+          const color = getBuoyColor(index);
+          return (
+            <article key={buoy.id} className="rounded-md border border-slate-200 p-3">
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <div>
+                  <h3 className="flex items-center gap-2 font-medium text-slate-950">
+                    <span className="h-3 w-3 rounded-full" style={{ backgroundColor: color }} />
+                    {buoy.name}
+                  </h3>
+                  <div className="text-xs text-slate-500">
+                    {buoy.telemetryTimestamp ? new Date(buoy.telemetryTimestamp).toLocaleTimeString() : 'No telemetry'}
+                  </div>
+                </div>
+                <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass[buoy.status]}`}>{buoy.status}</span>
+              </div>
+
+              <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
+                <div>
+                  <div className="text-slate-500">Battery</div>
+                  <div className="flex items-center gap-1 font-medium">
+                    <Battery size={14} />
+                    {buoy.batteryLevel ?? '-'}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Heading</div>
+                  <div className="font-medium">{buoy.heading ?? '-'} deg</div>
+                </div>
+                <div>
+                  <div className="text-slate-500">Command</div>
+                  <div className="font-medium">{buoy.pendingCommand ?? '-'}</div>
                 </div>
               </div>
-              <span className={`rounded-full px-2 py-1 text-xs font-medium ${statusClass[buoy.status]}`}>{buoy.status}</span>
-            </div>
 
-            <div className="mb-3 grid grid-cols-3 gap-2 text-sm">
-              <div>
-                <div className="text-slate-500">Battery</div>
-                <div className="flex items-center gap-1 font-medium">
-                  <Battery size={14} />
-                  {buoy.batteryLevel ?? '-'}%
-                </div>
+              <div className="grid grid-cols-4 gap-2">
+                {commandButtons.map(({ command, title, icon: Icon, needsTarget }) => {
+                  const active = buoy.pendingCommand === command;
+                  return (
+                    <button
+                      key={command}
+                      className={`icon-button ${active ? 'border-harbor bg-teal-50 text-harbor ring-2 ring-teal-100' : ''}`}
+                      title={active ? `${title} is active` : title}
+                      disabled={needsTarget && !firstMark}
+                      onClick={() => {
+                        if (needsTarget) {
+                          if (firstMark) onCommand(buoy.id, command, firstMark);
+                          return;
+                        }
+                        onCommand(buoy.id, command);
+                      }}
+                    >
+                      <Icon size={16} />
+                    </button>
+                  );
+                })}
               </div>
-              <div>
-                <div className="text-slate-500">Heading</div>
-                <div className="font-medium">{buoy.heading ?? '-'} deg</div>
-              </div>
-              <div>
-                <div className="text-slate-500">Command</div>
-                <div className="font-medium">{buoy.pendingCommand ?? '-'}</div>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-4 gap-2">
-              <button
-                className="icon-button"
-                title="Move to first mark"
-                disabled={!firstMark}
-                onClick={() => firstMark && onCommand(buoy.id, 'MOVE_TO', firstMark)}
-              >
-                <LocateFixed size={16} />
-              </button>
-              <button className="icon-button" title="Hold position" onClick={() => onCommand(buoy.id, 'HOLD_POSITION')}>
-                <Pause size={16} />
-              </button>
-              <button className="icon-button" title="Return home" onClick={() => onCommand(buoy.id, 'RETURN_HOME')}>
-                <RotateCcw size={16} />
-              </button>
-              <button className="icon-button" title="Stop" onClick={() => onCommand(buoy.id, 'STOP')}>
-                <Octagon size={16} />
-              </button>
-            </div>
-          </article>
-        ))}
+            </article>
+          );
+        })}
       </div>
       {buoys.length === 0 && <div className="rounded-md border border-dashed border-slate-300 p-4 text-sm text-slate-500">No buoys registered.</div>}
-      <div className="sr-only">
-        <Play size={1} />
+      <div className="mt-3">
+        {isAddingBuoy ? (
+          <div className="rounded-md border border-slate-200 p-3">
+            <div className="mb-2 text-sm font-semibold text-slate-950">Add Buoy</div>
+            <div className="grid gap-2">
+              <label className="field compact">
+                <span>Name</span>
+                <input value={newBuoyName} onChange={(event) => setNewBuoyName(event.target.value)} placeholder="Buoy 04" />
+              </label>
+              <div className="grid grid-cols-2 gap-2">
+                <label className="field compact">
+                  <span>Latitude</span>
+                  <input
+                    type="number"
+                    step="any"
+                    value={newBuoyLatitude}
+                    onChange={(event) => setNewBuoyLatitude(event.target.value)}
+                    placeholder="optional"
+                  />
+                </label>
+                <label className="field compact">
+                  <span>Longitude</span>
+                  <input
+                    type="number"
+                    step="any"
+                    value={newBuoyLongitude}
+                    onChange={(event) => setNewBuoyLongitude(event.target.value)}
+                    placeholder="optional"
+                  />
+                </label>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <button className="primary-button" onClick={handleAddBuoy} disabled={!newBuoyName.trim()}>
+                  <Plus size={16} />
+                  Add
+                </button>
+                <button className="secondary-button" onClick={() => setIsAddingBuoy(false)}>
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <button className="secondary-button w-full" onClick={() => setIsAddingBuoy(true)}>
+            <Plus size={16} />
+            Add Buoy
+          </button>
+        )}
       </div>
     </section>
   );

@@ -1,13 +1,24 @@
 import { Router } from 'express';
 import { broadcast } from '../realtime.js';
-import { commandInputSchema, telemetrySchema } from '../validation.js';
-import { getCommand, listBuoys, setCommand, updateTelemetry } from '../repositories/buoyRepository.js';
+import { buoyInputSchema, commandInputSchema, telemetrySchema } from '../validation.js';
+import { createBuoy, getCommand, listBuoys, setCommand, updateTelemetry } from '../repositories/buoyRepository.js';
 
 export const buoyRouter = Router();
 
 buoyRouter.get('/', async (_req, res, next) => {
   try {
     res.json(await listBuoys());
+  } catch (error) {
+    next(error);
+  }
+});
+
+buoyRouter.post('/', async (req, res, next) => {
+  try {
+    const input = buoyInputSchema.parse(req.body);
+    const buoy = await createBuoy(input);
+    broadcast({ type: 'buoy.created', buoy });
+    res.status(201).json(buoy);
   } catch (error) {
     next(error);
   }

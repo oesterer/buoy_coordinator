@@ -12,6 +12,14 @@ export const telemetrySchema = z.object({
   timestamp: z.string().datetime().optional()
 });
 
+export const buoyInputSchema = z.object({
+  name: z.string().min(1).max(120),
+  latitude: z.number().min(-90).max(90).nullable().optional(),
+  longitude: z.number().min(-180).max(180).nullable().optional(),
+  homeLatitude: z.number().min(-90).max(90).nullable().optional(),
+  homeLongitude: z.number().min(-180).max(180).nullable().optional()
+});
+
 export const racetrackMarkSchema = z.object({
   id: z.string().uuid().optional(),
   latitude: z.number().min(-90).max(90),

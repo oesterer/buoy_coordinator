@@ -2,6 +2,12 @@
 
 Full-stack RC sailing racetrack planner for autonomous floating buoy drones.
 
+## Screenshots
+
+![Planner UI screenshot](docs/images/planner-ui.png)
+
+![Autonomous buoy drone](docs/images/buoy.png)
+
 ## Stack
 
 - Frontend: React, TypeScript, Vite, Tailwind, React-Leaflet
@@ -74,16 +80,31 @@ ORDER BY racetrack_id, order_index;
 
 ## Buoy API Examples
 
-List registered buoys and copy a buoy `id`:
+List registered buoys and copy a buoy `id` or `name`:
 
 ```bash
 curl http://localhost:4000/api/buoys
 ```
 
-Post telemetry from a buoy:
+Post telemetry from a buoy by UUID:
 
 ```bash
 curl -X POST http://localhost:4000/api/buoys/BUOY_ID/telemetry \
+  -H "Content-Type: application/json" \
+  -d '{
+    "latitude": 37.8062,
+    "longitude": -122.4721,
+    "heading": 118,
+    "batteryLevel": 84,
+    "status": "moving",
+    "timestamp": "2026-05-23T20:30:00.000Z"
+  }'
+```
+
+Post telemetry from a buoy by name. URL-encode spaces in names:
+
+```bash
+curl -X POST http://localhost:4000/api/buoys/Buoy%2001/telemetry \
   -H "Content-Type: application/json" \
   -d '{
     "latitude": 37.8062,
@@ -99,6 +120,12 @@ Get the current command for a buoy:
 
 ```bash
 curl http://localhost:4000/api/buoys/BUOY_ID/command
+```
+
+By name:
+
+```bash
+curl http://localhost:4000/api/buoys/Buoy%2001/command
 ```
 
 Example command response:
@@ -121,6 +148,16 @@ curl -X POST http://localhost:4000/api/buoys/BUOY_ID/commands \
     "command": "MOVE_TO",
     "targetLatitude": 37.8077,
     "targetLongitude": -122.475
+  }'
+```
+
+By name:
+
+```bash
+curl -X POST http://localhost:4000/api/buoys/Buoy%2001/commands \
+  -H "Content-Type: application/json" \
+  -d '{
+    "command": "HOLD_POSITION"
   }'
 ```
 

@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS racetrack_marks (
 );
 
 CREATE INDEX IF NOT EXISTS idx_racetrack_marks_racetrack_id ON racetrack_marks(racetrack_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_buoys_lower_name_unique ON buoys (lower(name));
 
 INSERT INTO buoys (name, latitude, longitude, heading, battery_level, status, telemetry_timestamp, home_latitude, home_longitude)
 VALUES
