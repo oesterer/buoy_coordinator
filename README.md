@@ -6,7 +6,7 @@ Full-stack RC sailing racetrack planner for autonomous floating buoy drones.
 
 ![Planner UI screenshot](docs/images/planner-ui.png)
 
-![Autonomous buoy drone](docs/images/buoy.png)
+![Autonomous buoy drone](buoy.png)
 
 ## Stack
 
