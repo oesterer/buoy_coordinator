@@ -49,21 +49,21 @@ Use these settings in a SQL client:
 Host: localhost
 Port: 5432
 Database: buoy_coordinator
-Username: buoy
-Password: buoy_password
+Username: xxxx
+Password: xxxx
 SSL: disabled
 ```
 
 Connection URL:
 
 ```text
-postgres://buoy:buoy_password@localhost:5432/buoy_coordinator
+postgres://username:password@localhost:5432/buoy_coordinator
 ```
 
 Test with `psql`:
 
 ```bash
-psql postgres://buoy:buoy_password@localhost:5432/buoy_coordinator
+psql postgres://username:password@localhost:5432/buoy_coordinator
 ```
 
 Useful starter queries:
