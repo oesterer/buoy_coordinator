@@ -10,9 +10,33 @@ frontend/dist/
 # Environment and secrets
 .env
 .env.*
+deploy/prod.env
+deploy/*.env
+*.local
+*.secret
+*.secrets
+secrets/
+.secrets/
 !.env.example
 !backend/.env.example
 !frontend/.env.example
+!deploy/prod.env.example
+
+# AWS credentials and SSH private keys
+.aws/
+aws-credentials*
+credentials.csv
+new_user_credentials.csv
+*.pem
+*.key
+*.p8
+*.p12
+*.ppk
+id_rsa
+id_ed25519
+id_ecdsa
+id_dsa
+*.pub
 
 # Logs and diagnostics
 logs/
@@ -44,6 +68,20 @@ Thumbs.db
 # Docker and local database artifacts
 docker-compose.override.yml
 postgres_data/
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+*.tfvars
+*.tfvars.json
+!*.tfvars.example
+crash.log
+crash.*.log
+
+# Production backups
+backups/
 
 # Project-local scratch files
 codex.txt

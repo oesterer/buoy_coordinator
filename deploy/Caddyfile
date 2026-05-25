@@ -1,0 +1,22 @@
+{
+	email {$ACME_EMAIL}
+	acme_ca https://acme-v02.api.letsencrypt.org/directory
+}
+
+{$APP_DOMAIN} {
+	encode zstd gzip
+
+	handle /api/* {
+		reverse_proxy backend:4000
+	}
+
+	handle /ws {
+		reverse_proxy backend:4000
+	}
+
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+}

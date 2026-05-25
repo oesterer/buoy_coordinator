@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run build
+
+      - name: Configure SSH
+        run: |
+          mkdir -p ~/.ssh
+          printf '%s\n' "${{ secrets.PROD_SSH_KEY }}" > ~/.ssh/prod_key
+          chmod 600 ~/.ssh/prod_key
+          ssh-keyscan -H "${{ secrets.PROD_HOST }}" >> ~/.ssh/known_hosts
+          {
+            echo "Host buoy-prod"
+            echo "  HostName ${{ secrets.PROD_HOST }}"
+            echo "  User ec2-user"
+            echo "  IdentityFile ~/.ssh/prod_key"
+            echo "  StrictHostKeyChecking yes"
+          } >> ~/.ssh/config
+
+      - name: Write production env
+        run: |
+          cp deploy/prod.env.example deploy/prod.env
+          sed -i "s|APP_DOMAIN=.*|APP_DOMAIN=${{ secrets.APP_DOMAIN }}|" deploy/prod.env
+          sed -i "s|ACME_EMAIL=.*|ACME_EMAIL=${{ secrets.ACME_EMAIL }}|" deploy/prod.env
+          sed -i "s|POSTGRES_PASSWORD=.*|POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}|" deploy/prod.env
+          sed -i "s|PUBLIC_ORIGIN=.*|PUBLIC_ORIGIN=https://${{ secrets.APP_DOMAIN }}|" deploy/prod.env
+          sed -i "s|PUBLIC_WS_ORIGIN=.*|PUBLIC_WS_ORIGIN=wss://${{ secrets.APP_DOMAIN }}/ws|" deploy/prod.env
+          {
+            echo "PROD_HOST=buoy-prod"
+            echo "SSH_USER=ec2-user"
+            echo "REMOTE_APP_DIR=/opt/buoy_coordinator"
+          } >> deploy/prod.env
+
+      - name: Deploy
+        env:
+          PROD_ENV_FILE: deploy/prod.env
+        run: |
+          ./scripts/deploy.sh

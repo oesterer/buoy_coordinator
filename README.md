@@ -35,6 +35,56 @@ The Postgres container runs migrations from `database/migrations` when its volum
 - `frontend`: map-first racetrack planning UI
 - `database`: SQL migrations
 
+## Production Deployment
+
+The low-cost AWS deployment path uses one EC2 instance with Docker Compose:
+
+- Caddy serves the frontend and terminates HTTPS.
+- Caddy proxies `/api` and `/ws` to the backend container.
+- Postgres runs in Docker with data stored under `/opt/buoy-data/postgres` on an attached EBS volume.
+- Terraform provisions EC2, security group, Elastic IP, and the EBS data volume.
+
+Create AWS infrastructure:
+
+```bash
+cp infra/terraform/terraform.tfvars.example infra/terraform/terraform.tfvars
+# edit key_name and ssh_ingress_cidr
+./scripts/provision.sh
+```
+
+Point your DNS `A` record at the Terraform `public_ip` output.
+
+Create production environment config:
+
+```bash
+cp deploy/prod.env.example deploy/prod.env
+# edit APP_DOMAIN, ACME_EMAIL, PROD_HOST, AWS_REGION, INSTANCE_ID, and POSTGRES_PASSWORD
+```
+
+Deploy:
+
+```bash
+./scripts/deploy.sh
+```
+
+Start and stop the production host and services:
+
+```bash
+./scripts/start-prod.sh
+./scripts/stop-prod.sh
+```
+
+Back up and restore Postgres:
+
+```bash
+./scripts/backup-db.sh
+./scripts/restore-db.sh backups/buoy_coordinator-YYYYMMDD-HHMMSS.sql.gz
+```
+
+`deploy/prod.env`, Terraform state, and `backups/` are ignored by git.
+
+See [docs/production.md](docs/production.md) for the full production runbook.
+
 ## Database Access
 
 Start Postgres:
