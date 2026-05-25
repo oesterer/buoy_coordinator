@@ -7,6 +7,12 @@ import markerIcon2xUrl from 'leaflet/dist/images/marker-icon-2x.png';
 import markerIconUrl from 'leaflet/dist/images/marker-icon.png';
 import markerShadowUrl from 'leaflet/dist/images/marker-shadow.png';
 
+L.Icon.Default.mergeOptions({
+  iconRetinaUrl: markerIcon2xUrl,
+  iconUrl: markerIconUrl,
+  shadowUrl: markerShadowUrl
+});
+
 const buoyIcon = new L.Icon({
   iconUrl: markerIconUrl,
   iconRetinaUrl: markerIcon2xUrl,
