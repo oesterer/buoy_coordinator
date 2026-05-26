@@ -87,7 +87,7 @@ Back up and restore Postgres:
 
 `deploy/prod.env`, Terraform state, and `backups/` are ignored by git.
 
-See [docs/production.md](docs/production.md) for the full production runbook.
+See [docs/production.md](docs/production.md) for the production runbook and [docs/deploy.md](docs/deploy.md) for the detailed deployment guide.
 
 ## Database Access
 
