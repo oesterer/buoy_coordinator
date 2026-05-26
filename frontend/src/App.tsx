@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { createBuoy, createRacetrack, deleteRacetrack, getBuoys, getRacetracks, sendBuoyCommand, updateRacetrack } from './api';
+import { AddressSearch } from './components/AddressSearch';
 import { BuoyPanel } from './components/BuoyPanel';
 import { RacetrackMap } from './components/RacetrackMap';
 import { RacetrackPanel } from './components/RacetrackPanel';
@@ -51,6 +52,7 @@ export default function App() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSettingHome, setIsSettingHome] = useState(false);
+  const [searchTarget, setSearchTarget] = useState<[number, number] | null>(null);
 
   const selectedTrack = useMemo(() => racetracks.find((track) => track.id === selectedId) ?? null, [racetracks, selectedId]);
 
@@ -239,6 +241,7 @@ export default function App() {
       <main className="relative min-h-[55vh]">
         <RacetrackMap
           center={position}
+          searchTarget={searchTarget}
           buoys={buoys}
           draft={draft}
           selectedTrack={selectedTrack}
@@ -247,11 +250,12 @@ export default function App() {
           onMoveMark={handleMoveMark}
           onSetHome={handleSetHome}
         />
-        <div className="absolute right-3 top-3 z-[500] max-w-[calc(100%-5rem)] rounded-md bg-white px-3 py-2 text-sm shadow">
+        <AddressSearch onSelect={setSearchTarget} onError={setError} />
+        <div className="absolute bottom-3 left-3 z-[500] max-w-[calc(100%-1.5rem)] rounded-md bg-white px-3 py-2 text-sm shadow">
           {isSettingHome ? 'Click map to set home' : located ? 'Using browser location' : 'Using San Francisco fallback'}
           {!isSettingHome && <span className="ml-2 text-slate-500">Double-click map to add marks</span>}
         </div>
-        {error && <div className="absolute bottom-3 left-3 z-[500] rounded-md bg-red-600 px-3 py-2 text-sm text-white shadow">{error}</div>}
+        {error && <div className="absolute bottom-14 left-3 z-[500] rounded-md bg-red-600 px-3 py-2 text-sm text-white shadow">{error}</div>}
       </main>
 
       <BuoyPanel buoys={buoys} draft={draft} onCommand={handleCommand} onCommandAll={handleCommandAll} onAddBuoy={handleAddBuoy} />

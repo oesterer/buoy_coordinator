@@ -5,15 +5,21 @@ import type { Racetrack } from '../types';
 interface Props {
   center: [number, number];
   selectedTrack: Racetrack | null;
+  searchTarget: [number, number] | null;
 }
 
-export function MapController({ center, selectedTrack }: Props) {
+export function MapController({ center, selectedTrack, searchTarget }: Props) {
   const map = useMap();
   const fittedTrackId = useRef<string | null>(null);
 
   useEffect(() => {
     map.setView(center, 13);
   }, [center, map]);
+
+  useEffect(() => {
+    if (!searchTarget) return;
+    map.setView(searchTarget, 15);
+  }, [map, searchTarget]);
 
   useEffect(() => {
     if (!selectedTrack) {

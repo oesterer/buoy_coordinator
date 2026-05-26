@@ -32,6 +32,7 @@ const homeDragIcon = L.divIcon({
 
 interface Props {
   center: [number, number];
+  searchTarget: [number, number] | null;
   buoys: Buoy[];
   draft: RacetrackDraft;
   selectedTrack: Racetrack | null;
@@ -57,7 +58,7 @@ function MapClickHandler({ isSettingHome, onAddMark, onSetHome }: Pick<Props, 'i
   return null;
 }
 
-export function RacetrackMap({ center, buoys, draft, selectedTrack, isSettingHome, onAddMark, onMoveMark, onSetHome }: Props) {
+export function RacetrackMap({ center, searchTarget, buoys, draft, selectedTrack, isSettingHome, onAddMark, onMoveMark, onSetHome }: Props) {
   const trackLine = draft.marks.map((mark) => [mark.latitude, mark.longitude] as [number, number]);
   const closedLine = trackLine.length > 2 ? [...trackLine, trackLine[0]] : trackLine;
   const homePosition =
@@ -71,7 +72,7 @@ export function RacetrackMap({ center, buoys, draft, selectedTrack, isSettingHom
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
       />
-      <MapController center={center} selectedTrack={selectedTrack} />
+      <MapController center={center} selectedTrack={selectedTrack} searchTarget={searchTarget} />
       <MapClickHandler isSettingHome={isSettingHome} onAddMark={onAddMark} onSetHome={onSetHome} />
 
       {closedLine.length > 1 && <Polyline positions={closedLine} pathOptions={{ color: '#0f766e', weight: 3 }} />}
