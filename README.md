@@ -1,4 +1,4 @@
-# Buoy Coordinator
+# Buoy Coordinator 
 
 Full-stack RC sailing racetrack planner for autonomous floating buoy drones.
 
