@@ -8,6 +8,10 @@ Full-stack RC sailing racetrack planner for autonomous floating buoy drones.
 
 ![Autonomous buoy drone](buoy.png)
 
+## Deployment Architecture
+
+![Deployment architecture](docs/images/deployment-architecture.png)
+
 ## Stack
 
 - Frontend: React, TypeScript, Vite, Tailwind, React-Leaflet

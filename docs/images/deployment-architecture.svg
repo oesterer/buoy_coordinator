@@ -1,0 +1,75 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="760" viewBox="0 0 1280 760">
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#0f172a" flood-opacity=".16"/>
+    </filter>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M0 0 10 5 0 10z" fill="#334155"/>
+    </marker>
+  </defs>
+  <rect width="1280" height="760" fill="#f8fafc"/>
+  <text x="64" y="64" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="700" fill="#0f172a">Buoy Coordinator Production Architecture</text>
+  <text x="64" y="94" font-family="Inter, Arial, sans-serif" font-size="16" fill="#64748b">Single AWS EC2 host running Docker Compose, Caddy, backend, and Postgres</text>
+
+  <rect x="64" y="140" width="230" height="96" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="92" y="176" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Browser / Operator</text>
+  <text x="92" y="204" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">React UI over HTTPS</text>
+
+  <rect x="64" y="310" width="230" height="96" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="92" y="346" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Buoy Drones</text>
+  <text x="92" y="374" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Telemetry + commands</text>
+
+  <rect x="394" y="140" width="206" height="96" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="424" y="176" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">DNS</text>
+  <text x="424" y="204" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">buoy.oesterer.com</text>
+
+  <rect x="690" y="120" width="496" height="520" rx="18" fill="#eef6ff" stroke="#93c5fd" stroke-width="2"/>
+  <text x="722" y="158" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="700" fill="#0f172a">AWS EC2 Instance</text>
+  <text x="722" y="184" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Elastic IP, security group opens 80/443; SSH controlled by CIDR</text>
+
+  <rect x="730" y="220" width="416" height="96" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="760" y="256" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Caddy Container</text>
+  <text x="760" y="284" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">HTTPS certificates, static frontend, reverse proxy</text>
+
+  <rect x="730" y="362" width="192" height="112" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="760" y="398" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Frontend</text>
+  <text x="760" y="426" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Vite static files</text>
+  <text x="760" y="450" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Served by Caddy</text>
+
+  <rect x="954" y="362" width="192" height="112" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="984" y="398" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Backend</text>
+  <text x="984" y="426" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Node + Express</text>
+  <text x="984" y="450" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">REST API + WebSocket</text>
+
+  <rect x="954" y="520" width="192" height="80" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="984" y="554" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Postgres</text>
+  <text x="984" y="580" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Docker container</text>
+
+  <rect x="730" y="520" width="192" height="80" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="760" y="554" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">EBS Volume</text>
+  <text x="760" y="580" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">/opt/buoy-data</text>
+
+  <rect x="394" y="520" width="206" height="96" rx="10" fill="#fff" stroke="#cbd5e1" filter="url(#shadow)"/>
+  <text x="424" y="556" font-family="Inter, Arial, sans-serif" font-size="18" font-weight="700" fill="#0f172a">Deploy Scripts</text>
+  <text x="424" y="584" font-family="Inter, Arial, sans-serif" font-size="14" fill="#475569">Terraform + SSH + Docker</text>
+
+  <line x1="294" y1="188" x2="394" y2="188" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="316" y="174" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">DNS lookup</text>
+  <line x1="600" y1="188" x2="690" y2="250" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="604" y="230" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">A record</text>
+  <path d="M294 352C455 352 520 260 730 260" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="372" y="340" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">HTTPS REST + WSS</text>
+  <line x1="938" y1="316" x2="938" y2="362" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="952" y="342" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">serves UI</text>
+  <line x1="1004" y1="316" x2="1030" y2="362" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="1038" y="342" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">/api, /ws</text>
+  <line x1="1050" y1="474" x2="1050" y2="520" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="1064" y="502" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">SQL</text>
+  <line x1="954" y1="560" x2="922" y2="560" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="926" y="548" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">data</text>
+  <path d="M600 568C666 568 674 568 730 568" fill="none" stroke="#334155" stroke-width="2.5" marker-end="url(#arrow)"/>
+  <text x="612" y="552" font-family="Inter, Arial, sans-serif" font-size="13" fill="#475569">provision/deploy</text>
+
+  <rect x="64" y="672" width="1122" height="44" rx="8" fill="#fff7ed" stroke="#fed7aa"/>
+  <text x="88" y="700" font-family="Inter, Arial, sans-serif" font-size="14" fill="#9a3412">Security note: HTTPS, REST API, and WebSocket endpoints are publicly reachable unless the security group or app-level authentication is tightened.</text>
+</svg>

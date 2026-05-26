@@ -2,6 +2,8 @@
 
 This deployment runs the app on one AWS EC2 instance using Docker Compose.
 
+![Deployment architecture](images/deployment-architecture.png)
+
 ## Prerequisites
 
 - AWS CLI configured locally
