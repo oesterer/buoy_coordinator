@@ -10,6 +10,7 @@ export function createApp() {
 
   app.use(cors({ origin: config.corsOrigin }));
   app.use(express.json());
+  app.use(express.text({ type: ['text/csv', 'application/csv'] }));
 
   app.get('/health', (_req, res) => {
     res.json({ status: 'ok' });
