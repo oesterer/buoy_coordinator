@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { broadcast } from '../realtime.js';
 import { buoyInputSchema, commandInputSchema, telemetrySchema } from '../validation.js';
 import { createBuoy, getCommand, listBuoys, setCommand, updateTelemetry } from '../repositories/buoyRepository.js';
-import { parseTelemetryCsv, toCsv, wantsCsv } from '../utils/csv.js';
+import { parseTelemetryCsv, toCsv, toCsvRow, wantsCsv } from '../utils/csv.js';
 
 export const buoyRouter = Router();
 
@@ -61,10 +61,7 @@ buoyRouter.get('/:id/command', async (req, res, next) => {
 
     if (wantsCsv(req)) {
       res.type('text/csv').send(
-        toCsv(
-          ['command', 'targetLatitude', 'targetLongitude', 'updatedAt'],
-          [command.command, command.targetLatitude, command.targetLongitude, command.updatedAt]
-        )
+        toCsvRow([command.command, command.targetLatitude, command.targetLongitude, command.updatedAt])
       );
       return;
     }

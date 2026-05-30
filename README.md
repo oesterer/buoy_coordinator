@@ -170,7 +170,7 @@ curl -X POST http://localhost:4000/api/buoys/Buoy%2001/telemetry \
   }'
 ```
 
-Post telemetry as CSV. CSV can include a header row:
+Post telemetry as CSV. `timestamp` is optional; when omitted, the server stores the current time. CSV can include a header row:
 
 ```bash
 curl -X POST "http://localhost:4000/api/buoys/Buoy%2001/telemetry?format=csv" \
@@ -183,6 +183,15 @@ Or send only values in this order:
 
 ```text
 latitude,longitude,heading,batteryLevel,status,timestamp
+```
+
+When omitting `timestamp`, either leave the last value blank or use a header row without `timestamp`:
+
+```bash
+curl -X POST "http://localhost:4000/api/buoys/Buoy%2001/telemetry?format=csv" \
+  -H "Content-Type: text/csv" \
+  -H "Accept: text/csv" \
+  --data-binary $'latitude,longitude,heading,batteryLevel,status\n37.8062,-122.4721,118,84,moving'
 ```
 
 Get the current command for a buoy:
@@ -203,10 +212,13 @@ Get the current command as CSV:
 curl -H "Accept: text/csv" http://localhost:4000/api/buoys/Buoy%2001/command
 ```
 
-CSV command response:
+CSV command responses are value-only without a header row. Value order:
+
+command,targetLatitude,targetLongitude,updatedAt
+
+Example:
 
 ```csv
-command,targetLatitude,targetLongitude,updatedAt
 MOVE_TO,37.8077,-122.475,2026-05-23T20:30:00.000Z
 ```
 

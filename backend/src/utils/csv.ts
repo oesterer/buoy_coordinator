@@ -79,3 +79,7 @@ function escapeCsvValue(value: unknown) {
 export function toCsv(headers: string[], row: unknown[]) {
   return `${headers.join(',')}\n${row.map(escapeCsvValue).join(',')}\n`;
 }
+
+export function toCsvRow(row: unknown[]) {
+  return `${row.map(escapeCsvValue).join(',')}\n`;
+}
